@@ -38,8 +38,6 @@ ENV/
 *.swp
 *.swo
 
-# Environment variables
-.env
 
 # Docker
 docker-compose.override.yml 
