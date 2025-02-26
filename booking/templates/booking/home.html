@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 text-center">
+        <h1 class="display-4 mb-4">Welcome to Mini Booking</h1>
+        <p class="lead mb-4">Book your favorite facilities with ease</p>
+        
+        <div class="row g-4 mb-4">
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-building text-primary"></i> Facilities
+                        </h5>
+                        <p class="card-text">Browse available facilities and check their capacity</p>
+                        <a href="{% url 'booking:facility_list' %}" class="btn btn-primary">View Facilities</a>
+                    </div>
+                </div>
+            </div>
+            
+            {% if user.is_authenticated %}
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-calendar-check text-success"></i> My Bookings
+                        </h5>
+                        <p class="card-text">View and manage your current bookings</p>
+                        <a href="{% url 'booking:booking_list' %}" class="btn btn-success">View Bookings</a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-md-6">
+                <div class="card h-100">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <i class="bi bi-person-plus text-info"></i> Get Started
+                        </h5>
+                        <p class="card-text">Create an account or login to make bookings</p>
+                        <a href="{% url 'booking:signup' %}" class="btn btn-info text-white">Sign Up</a>
+                        <a href="{% url 'booking:login' %}" class="btn btn-outline-info">Login</a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

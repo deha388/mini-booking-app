@@ -1,0 +1,18 @@
+{% extends "booking/base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4">Welcome to Mini Booking System</h1>
+    <p class="lead">Book your favorite facilities easily and quickly.</p>
+    <hr class="my-4">
+    {% if user.is_authenticated %}
+        <p>Start booking now!</p>
+        <a class="btn btn-primary btn-lg" href="{% url 'booking:booking_create' %}" role="button">New Booking</a>
+        <a class="btn btn-secondary btn-lg" href="{% url 'booking:booking_list' %}" role="button">My Bookings</a>
+    {% else %}
+        <p>Please login to start booking.</p>
+        <a class="btn btn-primary btn-lg" href="{% url 'booking:login' %}" role="button">Login</a>
+        <a class="btn btn-secondary btn-lg" href="{% url 'booking:signup' %}" role="button">Sign Up</a>
+    {% endif %}
+</div>
+{% endblock %} 

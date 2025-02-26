@@ -1,0 +1,169 @@
+{% extends "booking/base.html" %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title mb-4">{% if form.instance.pk %}Edit{% else %}New{% endif %} Booking</h2>
+                
+                <form method="post" id="bookingForm">
+                    {% csrf_token %}
+                    
+                    <!-- Facility Selection -->
+                    <div class="mb-4">
+                        <label class="form-label">Select Facility</label>
+                        <div class="row">
+                            {% for facility in form.fields.facility.queryset %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card facility-card h-100">
+                                    <div class="card-body">
+                                        <div class="form-check">
+                                            <input type="radio" name="facility" value="{{ facility.id }}" 
+                                                   class="form-check-input" id="facility_{{ facility.id }}"
+                                                   {% if form.facility.value|stringformat:"i" == facility.id|stringformat:"i" %}checked{% endif %}>
+                                            <label class="form-check-label" for="facility_{{ facility.id }}">
+                                                <h5 class="mb-1">{{ facility.name }}</h5>
+                                                <p class="mb-1"><small>{{ facility.location }}</small></p>
+                                                <p class="mb-0"><small class="text-muted">Capacity: {{ facility.capacity }}</small></p>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Date Selection -->
+                    <div class="mb-4">
+                        <label class="form-label">Select Date</label>
+                        {{ form.date|as_crispy_field }}
+                    </div>
+
+                    <!-- Time Slots -->
+                    <div class="mb-4">
+                        <label class="form-label">Select Time Slot</label>
+                        <div class="row" id="timeSlots">
+                            {% for value, label in form.fields.start_time.choices %}
+                            <div class="col-md-3 col-6">
+                                <div class="time-slot" data-value="{{ value }}">
+                                    {{ label }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="start_time" id="selectedTimeSlot">
+                    </div>
+
+                    <!-- Notes -->
+                    <div class="mb-4">
+                        {{ form.notes|as_crispy_field }}
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary">
+                            {% if form.instance.pk %}Update{% else %}Create{% endif %} Booking
+                        </button>
+                        <a href="{% url 'booking:booking_list' %}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Flatpickr
+    flatpickr("#id_date", {
+        minDate: "today",
+        dateFormat: "Y-m-d",
+        disable: [
+            function(date) {
+                return (date.getDay() === 0); // Disable Sundays
+            }
+        ],
+    });
+
+    const form = document.getElementById('bookingForm');
+    const facilityInputs = form.querySelectorAll('[name="facility"]');
+    const dateInput = document.getElementById('id_date');
+    const timeSlots = document.querySelectorAll('.time-slot');
+    const selectedTimeSlotInput = document.getElementById('selectedTimeSlot');
+
+    // Time slot selection
+    timeSlots.forEach(slot => {
+        slot.addEventListener('click', function() {
+            if (!this.classList.contains('disabled')) {
+                timeSlots.forEach(s => s.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedTimeSlotInput.value = this.dataset.value;
+            }
+        });
+    });
+
+    // Form validation
+    form.addEventListener('submit', function(e) {
+        console.log('Form submitting...');
+        console.log('Facility:', form.querySelector('[name="facility"]:checked')?.value);
+        console.log('Date:', dateInput.value);
+        console.log('Time:', selectedTimeSlotInput.value);
+        
+        if (!form.querySelector('[name="facility"]:checked')) {
+            e.preventDefault();
+            alert('Please select a facility');
+            return;
+        }
+        if (!dateInput.value) {
+            e.preventDefault();
+            alert('Please select a date');
+            return;
+        }
+        if (!selectedTimeSlotInput.value) {
+            e.preventDefault();
+            alert('Please select a time slot');
+            return;
+        }
+        
+        // Form geçerli, gönderiliyor
+        console.log('Form is valid, submitting...');
+    });
+
+    async function updateAvailableTimeSlots() {
+        const facility = form.querySelector('[name="facility"]:checked')?.value;
+        const date = dateInput.value;
+        
+        if (!facility || !date) return;
+
+        try {
+            const response = await fetch(`/api/available-slots/?facility=${facility}&date=${date}`);
+            const data = await response.json();
+            
+            timeSlots.forEach(slot => {
+                const timeValue = slot.dataset.value;
+                if (data.booked_slots.includes(timeValue)) {
+                    slot.classList.add('disabled');
+                    if (slot.classList.contains('selected')) {
+                        slot.classList.remove('selected');
+                        selectedTimeSlotInput.value = '';
+                    }
+                } else {
+                    slot.classList.remove('disabled');
+                }
+            });
+        } catch (error) {
+            console.error('Error fetching available slots:', error);
+        }
+    }
+
+    facilityInputs.forEach(input => {
+        input.addEventListener('change', updateAvailableTimeSlots);
+    });
+    dateInput.addEventListener('change', updateAvailableTimeSlots);
+});
+</script>
+{% endblock %} 

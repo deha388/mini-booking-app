@@ -1,0 +1,60 @@
+{% extends "booking/base.html" %}
+{% load booking_extras %}
+
+{% block content %}
+<div class="container">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Available Facilities</h2>
+        {% if user.is_authenticated %}
+            <a href="{% url 'booking:booking_create' %}" class="btn btn-primary">
+                <i class="bi bi-calendar-plus"></i> Make a Booking
+            </a>
+        {% endif %}
+    </div>
+
+    <div class="row">
+        {% for facility in facilities %}
+            <div class="col-md-6 mb-4">
+                <div class="card h-100 facility-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <h5 class="card-title">{{ facility.name }}</h5>
+                            <span class="badge {% if facility.is_available %}bg-success{% else %}bg-danger{% endif %}">
+                                {% if facility.is_available %}
+                                    Available ({{ facility.capacity|sub:facility.today_bookings }} slots)
+                                {% else %}
+                                    Full
+                                {% endif %}
+                            </span>
+                        </div>
+                        <h6 class="card-subtitle mb-2 text-muted">{{ facility.location }}</h6>
+                        
+                        <div class="facility-details mt-3">
+                            <p class="card-text">{{ facility.description }}</p>
+                            <ul class="list-unstyled">
+                                <li><i class="bi bi-people-fill"></i> Capacity: {{ facility.capacity }} people</li>
+                                <li><i class="bi bi-calendar-check"></i> Today's Bookings: {{ facility.today_bookings }}</li>
+                            </ul>
+                        </div>
+
+                        {% if user.is_authenticated %}
+                            <div class="mt-3">
+                                <a href="{% url 'booking:booking_create' %}?facility={{ facility.id }}" 
+                                   class="btn btn-primary {% if not facility.is_available %}disabled{% endif %}">
+                                    Book Now
+                                </a>
+                            </div>
+                        {% else %}
+                            <div class="mt-3">
+                                <a href="{% url 'booking:login' %}" class="btn btn-outline-primary">
+                                    Login to Book
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %} 
