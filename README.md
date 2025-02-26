@@ -20,4 +20,10 @@ A Django-based facility booking system with real-time availability checking and 
 - **Frontend:** Bootstrap 5
 - **Containerization:** Docker & Docker Compose
 
-## docker-compose up --build
+## Run Docker Container
+
+````
+```
+docker-compose up --build
+```
+````
